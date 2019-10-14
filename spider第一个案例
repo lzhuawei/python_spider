@@ -1,0 +1,35 @@
+import os
+import requests
+from bs4 import BeautifulSoup
+
+def get_book():
+    data=requests.get('http://www.biquw.com/book/94/')
+    datatext = requests.get('http://www.biquw.com/book/94/').text
+    #返回请求成功状态码200,404,500
+    #数据提取，填写两个参数,要提取的网页，lxml html解析库
+    #网页elements  ul li等标签
+    soup=BeautifulSoup(datatext,'lxml')
+    data_list=soup.find('ul')
+    #print(data)
+    #print(datatext)
+    #print(data_list)
+    #迭代二次筛选
+    try:
+        for book_data in data_list.find_all('a'):
+            #print(book_data.text,book_data['href'])
+            book_url='http://www.biquw.com/book/94/'+book_data['href']
+            #print(book_url)
+            content=requests.get(book_url).text
+            soup=BeautifulSoup(content,'lxml')
+            book_content=soup.find('div',{'id':'htmlContent'}).text
+            print(book_content)
+            #自动创建保存小说文件的文件夹
+            if not os.path.exists('./小说/'):
+                os.makedirs('./小说/')
+                with open('./小说/'+book_data.text+'.txt','w',encoding='utf-8') as f:
+                    f.write(book_content)
+            #自动创建保存小说到文本当中 文件处理
+    except Exception:
+        print('爬虫中断...')
+if __name__=="__main__":
+    get_book()
